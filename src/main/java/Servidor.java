@@ -34,10 +34,13 @@ public abstract class Servidor extends ReceiverAdapter {
                 break;
             case CONSOME:
                 consome(pedido);
+                break;
             case FINALIZA:
                 finaliza(msg.getSrc());
+                break;
             case NAO:
                 nao();
+                break;
             case SOLICITA:
                 solicita(msg);
                 break;
