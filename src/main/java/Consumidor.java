@@ -11,7 +11,8 @@ public class Consumidor extends Servidor {
         consumidor.trabalha();
     }
 
-    private void trabalha() {
+    @Override
+    protected void trabalha() {
         Address coord = channel.getView().getCoord();
         Pedido pedido = new Pedido(Pedido.Tipo.SOLICITA);
 
@@ -30,9 +31,7 @@ public class Consumidor extends Servidor {
         Address consumidor = pedido.getConsumidor();
         Produto produto = pedido.getProduto();
 
-        synchronized (fila) {
-            fila.consomeProduto(consumidor, produto);
-        }
+        fila.consomeProduto(consumidor, produto);
 
         if (local.equals(consumidor)) {
             executorService.submit(() -> {
@@ -54,7 +53,7 @@ public class Consumidor extends Servidor {
     @Override
     protected void nao() {
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(0, 5000));
+            Thread.sleep(ThreadLocalRandom.current().nextInt(0, 500));
             trabalha();
         } catch (InterruptedException e) {
             e.printStackTrace();

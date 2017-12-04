@@ -7,10 +7,11 @@ public class Produtor extends Servidor {
     public static void main(String[] args) throws Exception {
         Produtor produtor = new Produtor();
         produtor.start();
-        produtor.loop();
+        produtor.trabalha();
     }
 
-    private void loop() {
+    @Override
+    protected void trabalha() {
         executorService.submit(() -> {
             while (true) {
                 if (fila.cheia()) {
@@ -39,9 +40,7 @@ public class Produtor extends Servidor {
 
     @Override
     protected void consome(Pedido pedido) {
-        synchronized (fila) {
-            fila.consomeProduto(pedido.getConsumidor(), pedido.getProduto());
-        }
+        fila.consomeProduto(pedido.getConsumidor(), pedido.getProduto());
     }
 
     @Override

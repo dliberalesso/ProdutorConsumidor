@@ -14,7 +14,7 @@ public class Produto implements Serializable, Streamable, Runnable {
 
     public Produto() {
         this.id = contador.incrementAndGet();
-        this.milisegundos = ThreadLocalRandom.current().nextInt(250, 15000);
+        this.milisegundos = ThreadLocalRandom.current().nextInt(250, 5000);
     }
 
     public int getId() {

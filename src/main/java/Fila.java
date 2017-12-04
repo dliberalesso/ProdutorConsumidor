@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Fila implements Streamable {
     private Queue<Produto> aguardando = new ConcurrentLinkedQueue<>();
-    private Map<Address, Produto> consumindo = new ConcurrentHashMap<>();
+    private Map<String, Produto> consumindo = new ConcurrentHashMap<>();
 
     public void adicionaProduto(Produto produto) {
         aguardando.add(produto);
@@ -27,20 +27,20 @@ public class Fila implements Streamable {
 
     public Produto consomeProduto(Address address) {
         Produto produto = aguardando.poll();
-        consumindo.put(address, produto);
+        consumindo.put(address.toString(), produto);
         return produto;
     }
 
     public void consomeProduto(Address address, Produto produto) {
-        consumindo.put(address, produto);
+        consumindo.put(address.toString(), produto);
     }
 
     public void finaliza(Address address) {
-        consumindo.remove(address);
+        consumindo.remove(address.toString());
     }
 
     public void cancela(Address address) {
-        Produto produto = consumindo.remove(address);
+        Produto produto = consumindo.remove(address.toString());
         if (produto != null) {
             aguardando.add(produto);
         }

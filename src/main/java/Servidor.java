@@ -23,6 +23,7 @@ public abstract class Servidor extends ReceiverAdapter {
     @Override
     public void viewAccepted(View view) {
         System.out.println("** view: " + view);
+        trabalha();
     }
 
     @Override
@@ -53,17 +54,13 @@ public abstract class Servidor extends ReceiverAdapter {
     }
 
     private void adiciona(Produto produto) {
-        synchronized (fila) {
-            fila.adicionaProduto(produto);
-        }
+        fila.adicionaProduto(produto);
     }
 
     protected abstract void consome(Pedido pedido);
 
     private void finaliza(Address address) {
-        synchronized (fila) {
-            fila.finaliza(address);
-        }
+        fila.finaliza(address);
     }
 
     protected abstract void nao();
@@ -79,11 +76,7 @@ public abstract class Servidor extends ReceiverAdapter {
                 byte[] buf = Util.streamableToByteBuffer(pedido);
                 resposta = new Message(solicitante, buf);
             } else {
-                Produto produto;
-
-                synchronized (fila) {
-                    produto = fila.consomeProduto(solicitante);
-                }
+                Produto produto = fila.consomeProduto(solicitante);
 
                 pedido = new Pedido(Pedido.Tipo.CONSOME, produto, solicitante);
                 byte[] buf = Util.streamableToByteBuffer(pedido);
@@ -95,17 +88,15 @@ public abstract class Servidor extends ReceiverAdapter {
         }
     }
 
+    protected abstract void trabalha();
+
     @Override
     public void getState(OutputStream output) throws Exception {
-        synchronized (fila) {
-            Util.objectToStream(fila, new DataOutputStream(output));
-        }
+        Util.objectToStream(fila, new DataOutputStream(output));
     }
 
     @Override
     public void setState(InputStream input) throws Exception {
-        synchronized (fila) {
-            fila = Util.objectFromStream(new DataInputStream(input));
-        }
+        fila = Util.objectFromStream(new DataInputStream(input));
     }
 }
