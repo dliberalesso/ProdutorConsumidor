@@ -27,23 +27,28 @@ public abstract class Servidor extends ReceiverAdapter {
 
     @Override
     public void receive(Message msg) {
-        Pedido pedido = msg.getObject();
-        switch (pedido.getTipo()) {
-            case ADICIONA:
-                adiciona(pedido.getProduto());
-                break;
-            case CONSOME:
-                consome(pedido);
-                break;
-            case FINALIZA:
-                finaliza(msg.getSrc());
-                break;
-            case NAO:
-                nao();
-                break;
-            case SOLICITA:
-                solicita(msg);
-                break;
+        try {
+            Pedido pedido = Util.streamableFromByteBuffer(Pedido.class, msg.getRawBuffer(), msg.getOffset(), msg.getLength());
+            msg.getObject();
+            switch (pedido.getTipo()) {
+                case ADICIONA:
+                    adiciona(pedido.getProduto());
+                    break;
+                case CONSOME:
+                    consome(pedido);
+                    break;
+                case FINALIZA:
+                    finaliza(msg.getSrc());
+                    break;
+                case NAO:
+                    nao();
+                    break;
+                case SOLICITA:
+                    solicita(msg);
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -68,21 +73,22 @@ public abstract class Servidor extends ReceiverAdapter {
         Message resposta;
         Address solicitante = message.getSrc();
 
-        if (fila.vazia()) {
-            pedido = new Pedido(Pedido.Tipo.NAO);
-            resposta = new Message(solicitante, pedido);
-        } else {
-            Produto produto;
-
-            synchronized (fila) {
-                produto = fila.consomeProduto(solicitante);
-            }
-
-            pedido = new Pedido(Pedido.Tipo.CONSOME, produto, solicitante);
-            resposta = new Message(null, pedido);
-        }
-
         try {
+            if (fila.vazia()) {
+                pedido = new Pedido(Pedido.Tipo.NAO);
+                byte[] buf = Util.streamableToByteBuffer(pedido);
+                resposta = new Message(solicitante, buf);
+            } else {
+                Produto produto;
+
+                synchronized (fila) {
+                    produto = fila.consomeProduto(solicitante);
+                }
+
+                pedido = new Pedido(Pedido.Tipo.CONSOME, produto, solicitante);
+                byte[] buf = Util.streamableToByteBuffer(pedido);
+                resposta = new Message(null, buf);
+            }
             channel.send(resposta);
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,7 +105,7 @@ public abstract class Servidor extends ReceiverAdapter {
     @Override
     public void setState(InputStream input) throws Exception {
         synchronized (fila) {
-            fila = (Fila) Util.objectFromStream(new DataInputStream(input));
+            fila = Util.objectFromStream(new DataInputStream(input));
         }
     }
 }

@@ -1,13 +1,24 @@
 import org.jgroups.Address;
+import org.jgroups.util.Streamable;
+import org.jgroups.util.Util;
 
-import java.io.Serializable;
+import java.io.DataInput;
+import java.io.DataOutput;
 
-public class Pedido implements Serializable {
-    static enum Tipo {ADICIONA, CONSOME, FINALIZA, NAO, SOLICITA};
+public class Pedido implements Streamable {
+    public Pedido() {
+    }
 
     private Tipo tipo;
     private Produto produto;
     private Address consumidor;
+
+    @Override
+    public void writeTo(DataOutput dataOutput) throws Exception {
+        dataOutput.writeInt(tipo.ordinal());
+        Util.objectToStream(produto, dataOutput);
+        Util.writeAddress(consumidor, dataOutput);
+    }
 
     public Pedido(Tipo tipo) {
         this.tipo = tipo;
@@ -38,4 +49,30 @@ public class Pedido implements Serializable {
     public Address getConsumidor() {
         return consumidor;
     }
+
+    @Override
+    public void readFrom(DataInput dataInput) throws Exception {
+        int tmp = dataInput.readInt();
+        switch (tmp) {
+            case 0:
+                tipo = Tipo.ADICIONA;
+                break;
+            case 1:
+                tipo = Tipo.CONSOME;
+                break;
+            case 2:
+                tipo = Tipo.FINALIZA;
+                break;
+            case 3:
+                tipo = Tipo.NAO;
+            case 4:
+                tipo = Tipo.SOLICITA;
+                break;
+        }
+
+        produto = Util.objectFromStream(dataInput);
+        consumidor = Util.readAddress(dataInput);
+    }
+
+    enum Tipo {ADICIONA, CONSOME, FINALIZA, NAO, SOLICITA}
 }

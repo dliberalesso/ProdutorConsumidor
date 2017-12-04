@@ -1,15 +1,19 @@
+import org.jgroups.util.Streamable;
+
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Produto implements Serializable, Runnable {
+public class Produto implements Serializable, Streamable, Runnable {
     private static final AtomicInteger contador = new AtomicInteger(0);
     private int id;
     private int milisegundos;
 
     public Produto() {
-        this.id = contador.incrementAndGet();;
+        this.id = contador.incrementAndGet();
         this.milisegundos = ThreadLocalRandom.current().nextInt(250, 15000);
     }
 
@@ -48,5 +52,17 @@ public class Produto implements Serializable, Runnable {
     @Override
     public int hashCode() {
         return Objects.hash(getId(), getMilisegundos());
+    }
+
+    @Override
+    public void writeTo(DataOutput dataOutput) throws Exception {
+        dataOutput.writeInt(id);
+        dataOutput.writeInt(milisegundos);
+    }
+
+    @Override
+    public void readFrom(DataInput dataInput) throws Exception {
+        id = dataInput.readInt();
+        milisegundos = dataInput.readInt();
     }
 }

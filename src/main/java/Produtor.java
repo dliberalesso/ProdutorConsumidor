@@ -1,4 +1,5 @@
 import org.jgroups.Message;
+import org.jgroups.util.Util;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -11,15 +12,26 @@ public class Produtor extends Servidor {
 
     private void loop() {
         executorService.submit(() -> {
-            for (int i = 0; i < 1000; i++) {
-                Pedido pedido = new Pedido(Pedido.Tipo.ADICIONA, new Produto());
-                Message message = new Message(null, pedido);
+            while (true) {
+                if (fila.cheia()) {
+                    try {
+                        Thread.sleep(ThreadLocalRandom.current().nextInt(0, 500));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Produto produto = new Produto();
+                    Pedido pedido = new Pedido(Pedido.Tipo.ADICIONA, produto);
+                    byte[] buf = Util.streamableToByteBuffer(pedido);
+                    Message message = new Message(null, buf);
 
-                try {
-                    channel.send(message);
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(0, 500));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    try {
+                        channel.send(message);
+                        System.out.println("Produzi: " + produto);
+                        Thread.sleep(ThreadLocalRandom.current().nextInt(0, 500));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
