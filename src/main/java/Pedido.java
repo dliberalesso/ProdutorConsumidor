@@ -6,18 +6,13 @@ import java.io.DataInput;
 import java.io.DataOutput;
 
 public class Pedido implements Streamable {
-    public Pedido() {
-    }
+    enum Tipo {ADICIONA, CONSOME, FINALIZA, NAO, SOLICITA}
 
     private Tipo tipo;
     private Produto produto;
     private Address consumidor;
 
-    @Override
-    public void writeTo(DataOutput dataOutput) throws Exception {
-        dataOutput.writeInt(tipo.ordinal());
-        Util.objectToStream(produto, dataOutput);
-        Util.writeAddress(consumidor, dataOutput);
+    public Pedido() {
     }
 
     public Pedido(Tipo tipo) {
@@ -51,6 +46,13 @@ public class Pedido implements Streamable {
     }
 
     @Override
+    public void writeTo(DataOutput dataOutput) throws Exception {
+        dataOutput.writeInt(tipo.ordinal());
+        Util.objectToStream(produto, dataOutput);
+        Util.writeAddress(consumidor, dataOutput);
+    }
+
+    @Override
     public void readFrom(DataInput dataInput) throws Exception {
         int tmp = dataInput.readInt();
         switch (tmp) {
@@ -73,6 +75,4 @@ public class Pedido implements Streamable {
         produto = Util.objectFromStream(dataInput);
         consumidor = Util.readAddress(dataInput);
     }
-
-    enum Tipo {ADICIONA, CONSOME, FINALIZA, NAO, SOLICITA}
 }
